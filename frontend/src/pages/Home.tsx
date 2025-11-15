@@ -126,8 +126,8 @@ function Home() {
       <p className="text-xl font-bold text-white">
         Mini Dashboard met API-koppeling
       </p>
-      <Card className="p-8">
-        <div className="flex justify-between items-center mb-6">
+      <Card className="p-2 md:p-8">
+        <div className="flex flex-col md:flex-row gap-2 justify-between items-center mb-6">
           <h1 className="text-4xl font-bold text-primary">Leads</h1>
           <Button
             variant="primary"
@@ -139,12 +139,11 @@ function Home() {
           </Button>
         </div>
 
-        <div className="mb-6 w-48">
+        <div className="mb-6 w-full flex justify-center md:w-48 md:block">
           <Select
             value={statusFilter}
             onChange={(e) => handleFilterChange(e.target.value)}
             options={statusOptions}
-            className="w-64"
           />
         </div>
 
