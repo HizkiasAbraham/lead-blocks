@@ -19,7 +19,7 @@ function Table<T extends { id: string }>({
   className = '',
 }: TableProps<T>) {
   return (
-    <div className={`bg-white rounded-lg border border-gray-200 overflow-hidden ${className}`}>
+    <div className={`bg-white rounded-lg overflow-hidden ${className}`}>
       <div className="overflow-x-auto">
         <table className="w-full min-w-full">
         <thead className="bg-blue-50">
