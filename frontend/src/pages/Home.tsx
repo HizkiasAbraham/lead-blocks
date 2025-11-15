@@ -10,6 +10,14 @@ interface Lead {
   status: 'Active' | 'Inactive';
 }
 
+interface Company {
+  id: string;
+  name: string;
+  industry: string;
+  email: string;
+  employees: string;
+}
+
 function Home() {
   const [statusFilter, setStatusFilter] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
@@ -21,6 +29,37 @@ function Home() {
     email: '',
     status: 'Active' as 'Active' | 'Inactive',
   });
+
+  const companies: Company[] = [
+    {
+      id: '1',
+      name: 'ABC Corp',
+      industry: 'Technology',
+      email: 'contact@abccorp.com',
+      employees: '50-100',
+    },
+    {
+      id: '2',
+      name: 'XYZ Ltd',
+      industry: 'Finance',
+      email: 'info@xyzltd.com',
+      employees: '100-500',
+    },
+    {
+      id: '3',
+      name: 'Acme Inc',
+      industry: 'Manufacturing',
+      email: 'hello@acmeinc.com',
+      employees: '500-1000',
+    },
+    {
+      id: '4',
+      name: 'Globex',
+      industry: 'Retail',
+      email: 'support@globex.com',
+      employees: '1000+',
+    },
+  ];
 
   const leads: Lead[] = [
     {
@@ -174,14 +213,19 @@ function Home() {
             placeholder="Enter name"
             required
           />
-          <Input
+          <Select
             label="Company"
-            type="text"
             value={newLead.company}
             onChange={(e) =>
               setNewLead({ ...newLead, company: e.target.value })
             }
-            placeholder="Enter company"
+            options={[
+              { value: '', label: 'Select a company' },
+              ...companies.map((company) => ({
+                value: company.name,
+                label: company.name,
+              })),
+            ]}
             required
           />
           <Input
