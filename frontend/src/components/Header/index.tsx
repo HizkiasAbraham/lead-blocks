@@ -19,14 +19,27 @@ function Header({ className = '' }: HeaderProps) {
   }
 
   // Get user initials for avatar
-  const getInitials = (email: string) => {
-    return email
-      .split('@')[0]
-      .split('.')
-      .map((part) => part[0])
-      .join('')
-      .toUpperCase()
-      .slice(0, 2)
+  const getInitials = (name?: string, email?: string) => {
+    if (name) {
+      // Use first letter of each word in the full name
+      return name
+        .split(' ')
+        .map((part) => part[0])
+        .join('')
+        .toUpperCase()
+        .slice(0, 2)
+    }
+    // Fallback to email if no name
+    if (email) {
+      return email
+        .split('@')[0]
+        .split('.')
+        .map((part) => part[0])
+        .join('')
+        .toUpperCase()
+        .slice(0, 2)
+    }
+    return 'U'
   }
 
   // Close dropdown when clicking outside
@@ -59,8 +72,11 @@ function Header({ className = '' }: HeaderProps) {
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
               className="flex items-center gap-2 focus:outline-none"
             >
+              <span className="hidden md:block text-lg text-gray-700 font-medium">
+                {user.name || user.email}
+              </span>
               <div className="h-10 w-10 rounded-full bg-primary text-white flex items-center justify-center font-semibold text-sm">
-                {getInitials(user.email)}
+                {getInitials(user.name, user.email)}
               </div>
             </button>
             {isDropdownOpen && (

@@ -66,7 +66,7 @@ const createConnection = (): SqliteDatabase => {
     const insertStmt = instance.prepare(
       'INSERT INTO users (email, full_name, password) VALUES (?, ?, ?)',
     )
-    insertStmt.run('admin@leadblocks.com', 'Laura', hashedPassword)
+    insertStmt.run('admin@leadblocks.com', 'Laura Dechesne', hashedPassword)
   }
 
   return instance
