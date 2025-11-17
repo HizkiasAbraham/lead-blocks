@@ -32,8 +32,7 @@ const createConnection = (): SqliteDatabase => {
     CREATE TABLE IF NOT EXISTS companies (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       name TEXT NOT NULL,
-      domain TEXT,
-      website TEXT,
+      description TEXT,
       created_at TEXT DEFAULT (datetime('now'))
     );
 

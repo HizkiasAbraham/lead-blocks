@@ -42,8 +42,7 @@ router.get('/', (req, res) => {
         l.created_at,
         c.id as company_id_full,
         c.name as company_name,
-        c.domain as company_domain,
-        c.website as company_website
+        c.description as company_description
       FROM leads l
       LEFT JOIN companies c ON l.company_id = c.id
       ${statusWhere}
@@ -67,8 +66,7 @@ router.get('/', (req, res) => {
         ? {
             id: lead.company_id_full,
             name: lead.company_name,
-            domain: lead.company_domain,
-            website: lead.company_website,
+            description: lead.company_description,
           }
         : null,
     }))
@@ -109,8 +107,7 @@ router.get('/:id', (req, res) => {
         l.created_at,
         c.id as company_id_full,
         c.name as company_name,
-        c.domain as company_domain,
-        c.website as company_website
+        c.description as company_description
       FROM leads l
       LEFT JOIN companies c ON l.company_id = c.id
       WHERE l.id = ?
@@ -133,8 +130,7 @@ router.get('/:id', (req, res) => {
         ? {
             id: lead.company_id_full,
             name: lead.company_name,
-            domain: lead.company_domain,
-            website: lead.company_website,
+            description: lead.company_description,
           }
         : null,
     }
@@ -155,15 +151,15 @@ router.post('/', (req: AuthRequest, res) => {
     status?: string
   }
 
-  if (!name || !email) {
-    return res.status(400).json({ error: 'name and email are required' })
+  if (!name || !email || !companyId || !status) {
+    return res.status(400).json({ error: 'name, email, companyId, and status are required' })
   }
 
   try {
     const stmt = db.prepare(
       'INSERT INTO leads (name, email, company_id, status) VALUES (?, ?, ?, ?)',
     )
-    const result = stmt.run(name, email, companyId ?? null, status || 'new')
+    const result = stmt.run(name, email, companyId, status)
 
     const created = db
       .prepare('SELECT * FROM leads WHERE id = ?')

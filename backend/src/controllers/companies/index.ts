@@ -70,10 +70,9 @@ router.get('/:id', (req, res) => {
 
 // POST /api/companies - create a company
 router.post('/', (req: AuthRequest, res) => {
-  const { name, domain, website } = req.body as {
+  const { name, description } = req.body as {
     name?: string
-    domain?: string | null
-    website?: string | null
+    description?: string | null
   }
 
   if (!name) {
@@ -82,9 +81,9 @@ router.post('/', (req: AuthRequest, res) => {
 
   try {
     const stmt = db.prepare(
-      'INSERT INTO companies (name, domain, website) VALUES (?, ?, ?)',
+      'INSERT INTO companies (name, description) VALUES (?, ?)',
     )
-    const result = stmt.run(name, domain ?? null, website ?? null)
+    const result = stmt.run(name, description ?? null)
 
     const created = db
       .prepare('SELECT * FROM companies WHERE id = ?')
@@ -105,10 +104,9 @@ router.put('/:id', (req: AuthRequest, res) => {
     return res.status(400).json({ error: 'Invalid company id' })
   }
 
-  const { name, domain, website } = req.body as {
+  const { name, description } = req.body as {
     name?: string
-    domain?: string | null
-    website?: string | null
+    description?: string | null
   }
 
   if (!name) {
@@ -122,9 +120,9 @@ router.put('/:id', (req: AuthRequest, res) => {
     }
 
     const stmt = db.prepare(
-      'UPDATE companies SET name = ?, domain = ?, website = ? WHERE id = ?',
+      'UPDATE companies SET name = ?, description = ? WHERE id = ?',
     )
-    stmt.run(name, domain ?? null, website ?? null, id)
+    stmt.run(name, description ?? null, id)
 
     const updated = db.prepare('SELECT * FROM companies WHERE id = ?').get(id)
 
