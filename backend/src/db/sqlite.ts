@@ -42,6 +42,7 @@ const createConnection = (): SqliteDatabase => {
       name TEXT NOT NULL,
       email TEXT NOT NULL,
       company_id INTEGER,
+      status TEXT DEFAULT 'new',
       created_at TEXT DEFAULT (datetime('now')),
       FOREIGN KEY (company_id) REFERENCES companies(id) ON DELETE SET NULL
     );
