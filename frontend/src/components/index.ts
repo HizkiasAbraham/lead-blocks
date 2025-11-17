@@ -8,4 +8,6 @@ export { default as Select } from './Select'
 export { default as Modal } from './Modal'
 export { default as Paginator } from './Paginator'
 export { default as Table } from './Table'
+export { default as Alert } from './Alert'
+export { default as Loading } from './Loading'
 
