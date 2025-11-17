@@ -8,3 +8,7 @@ dist/
 data/
 *.db
 
+# PM2 files
+logs/
+.pm2/
+
