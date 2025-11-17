@@ -1,12 +1,20 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useAuth } from '../contexts/AuthContext'
-import { Input, Button, Card } from '../components'
+import { Input, Button, Card, Alert } from '../components'
 
 function Login() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
-  const { login, isLoading } = useAuth()
+  const [isLoggingIn, setIsLoggingIn] = useState(false)
+  const { login } = useAuth()
+
+  // Debug: log error changes
+  useEffect(() => {
+    if (error) {
+      console.log('Error state updated:', error)
+    }
+  }, [error])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -17,11 +25,25 @@ function Login() {
       return
     }
 
+    setIsLoggingIn(true)
     try {
       await login(email, password)
+      // Clear error on success
+      setError('')
     } catch (err) {
-      setError('Login failed. Please try again.')
-      console.error(err)
+      let errorMessage = 'Login failed. Please try again.'
+      
+      if (err instanceof Error) {
+        errorMessage = err.message || errorMessage
+      } else if (typeof err === 'string') {
+        errorMessage = err
+      }
+      
+      console.error('Login error:', err)
+      console.log('Setting error message:', errorMessage)
+      setError(errorMessage)
+    } finally {
+      setIsLoggingIn(false)
     }
   }
 
@@ -40,11 +62,7 @@ function Login() {
             </h2>
           </div>
           <form className="space-y-6" onSubmit={handleSubmit}>
-            {error && (
-              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
-                {error}
-              </div>
-            )}
+            {error && <Alert variant="error">{error}</Alert>}
             <div className="space-y-4">
               <Input
                 id="email"
@@ -56,6 +74,7 @@ function Login() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="Email address"
+                disabled={isLoggingIn}
               />
               <Input
                 id="password"
@@ -67,6 +86,7 @@ function Login() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Password"
+                disabled={isLoggingIn}
               />
             </div>
 
@@ -74,7 +94,7 @@ function Login() {
               <Button
                 type="submit"
                 variant="primary"
-                isLoading={isLoading}
+                isLoading={isLoggingIn}
                 className="w-full"
               >
                 Sign in

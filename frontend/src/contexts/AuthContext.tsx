@@ -1,11 +1,26 @@
 import { createContext, useContext, useState, useEffect } from 'react'
 import type { ReactNode } from 'react'
+import { api } from '../api/client'
 
 interface User {
   id: string
   email: string
   name?: string
   [key: string]: any
+}
+
+interface LoginProps extends Record<string, string> {
+  email: string
+  password: string
+}
+
+interface LoginResponse {
+  token: string
+  user: {
+    id: number
+    email: string
+    full_name: string
+  }
 }
 
 interface AuthContextType {
@@ -50,34 +65,23 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     setIsLoading(false)
   }, [])
 
-  const login = async (email: string, _password: string) => {
-    setIsLoading(true)
+  const login = async (email: string, password: string) => {
     try {
-      // TODO: Replace with actual API call
-      // const response = await fetch('/api/auth/login', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({ email, password }),
-      // })
-      // const data = await response.json()
+      const loginData: LoginProps = { email, password }
+      const data = await api.post<LoginResponse>('/api/login', loginData)
 
-      // Mock login for now
-      const mockUser: User = {
-        id: '1',
-        email,
-        name: 'User',
+      const authUser: User = {
+        id: String(data.user.id),
+        email: data.user.email,
+        name: data.user.full_name,
       }
-      const mockToken = 'mock-jwt-token'
 
-      setUser(mockUser)
-      setToken(mockToken)
-      localStorage.setItem('auth_token', mockToken)
-      localStorage.setItem('auth_user', JSON.stringify(mockUser))
+      setUser(authUser)
+      setToken(data.token)
+      localStorage.setItem('auth_token', data.token)
+      localStorage.setItem('auth_user', JSON.stringify(authUser))
     } catch (error) {
-      console.error('Login error:', error)
       throw error
-    } finally {
-      setIsLoading(false)
     }
   }
 
