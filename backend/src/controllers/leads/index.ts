@@ -8,30 +8,75 @@ const db = getDb()
 // Protect all leads routes
 router.use(authMiddleware)
 
-// GET /api/leads - list leads with pagination
+// GET /api/leads - list leads with pagination and optional status filter
 router.get('/', (req, res) => {
   const page = Number(req.query.page ?? 1)
   const pageSize = Number(req.query.pageSize ?? 10)
+  const status = req.query.status as string | undefined
 
-  if (Number.isNaN(page) || page < 1 || Number.isNaN(pageSize) || pageSize < 1 || pageSize > 100) {
+  if (Number.isNaN(page) || page < 1 || Number.isNaN(pageSize) || pageSize < 1 || pageSize > 1000) {
     return res.status(400).json({ error: 'Invalid pagination parameters' })
   }
 
   const offset = (page - 1) * pageSize
 
   try {
-    const countStmt = db.prepare('SELECT COUNT(*) as total FROM leads')
-    const { total } = countStmt.get() as { total: number }
+    // Build WHERE clause for status filter
+    const statusWhere = status ? 'WHERE l.status = ?' : ''
 
-    const stmt = db.prepare(
-      'SELECT * FROM leads ORDER BY id DESC LIMIT ? OFFSET ?',
-    )
-    const leads = stmt.all(pageSize, offset)
+    // Count query with status filter
+    const countQuery = status
+      ? 'SELECT COUNT(*) as total FROM leads l WHERE l.status = ?'
+      : 'SELECT COUNT(*) as total FROM leads'
+    const countStmt = db.prepare(countQuery)
+    const { total } = (status ? countStmt.get(status) : countStmt.get()) as { total: number }
+
+    // Select query with status filter
+    const selectQuery = `
+      SELECT 
+        l.id,
+        l.name,
+        l.email,
+        l.company_id,
+        l.status,
+        l.created_at,
+        c.id as company_id_full,
+        c.name as company_name,
+        c.domain as company_domain,
+        c.website as company_website
+      FROM leads l
+      LEFT JOIN companies c ON l.company_id = c.id
+      ${statusWhere}
+      ORDER BY l.id DESC 
+      LIMIT ? OFFSET ?
+    `
+    const stmt = db.prepare(selectQuery)
+    const leads = status
+      ? stmt.all(status, pageSize, offset)
+      : stmt.all(pageSize, offset)
+
+    // Transform the results to include company object
+    const transformedLeads = leads.map((lead: any) => ({
+      id: lead.id,
+      name: lead.name,
+      email: lead.email,
+      company_id: lead.company_id,
+      status: lead.status || 'new',
+      created_at: lead.created_at,
+      company: lead.company_id_full
+        ? {
+            id: lead.company_id_full,
+            name: lead.company_name,
+            domain: lead.company_domain,
+            website: lead.company_website,
+          }
+        : null,
+    }))
 
     const totalPages = Math.ceil(total / pageSize) || 1
 
     return res.json({
-      data: leads,
+      data: transformedLeads,
       pagination: {
         page,
         pageSize,
@@ -54,14 +99,47 @@ router.get('/:id', (req, res) => {
   }
 
   try {
-    const stmt = db.prepare('SELECT * FROM leads WHERE id = ?')
-    const lead = stmt.get(id)
+    const stmt = db.prepare(`
+      SELECT 
+        l.id,
+        l.name,
+        l.email,
+        l.company_id,
+        l.status,
+        l.created_at,
+        c.id as company_id_full,
+        c.name as company_name,
+        c.domain as company_domain,
+        c.website as company_website
+      FROM leads l
+      LEFT JOIN companies c ON l.company_id = c.id
+      WHERE l.id = ?
+    `)
+    const lead = stmt.get(id) as any
 
     if (!lead) {
       return res.status(404).json({ error: 'Lead not found' })
     }
 
-    return res.json(lead)
+    // Transform the result to include company object
+    const transformedLead = {
+      id: lead.id,
+      name: lead.name,
+      email: lead.email,
+      company_id: lead.company_id,
+      status: lead.status || 'new',
+      created_at: lead.created_at,
+      company: lead.company_id_full
+        ? {
+            id: lead.company_id_full,
+            name: lead.company_name,
+            domain: lead.company_domain,
+            website: lead.company_website,
+          }
+        : null,
+    }
+
+    return res.json(transformedLead)
   } catch (err) {
     console.error('[leads] Error fetching lead:', err)
     return res.status(500).json({ error: 'Failed to fetch lead' })
@@ -70,10 +148,11 @@ router.get('/:id', (req, res) => {
 
 // POST /api/leads - create a lead
 router.post('/', (req: AuthRequest, res) => {
-  const { name, email, companyId } = req.body as {
+  const { name, email, companyId, status } = req.body as {
     name?: string
     email?: string
     companyId?: number | null
+    status?: string
   }
 
   if (!name || !email) {
@@ -82,9 +161,9 @@ router.post('/', (req: AuthRequest, res) => {
 
   try {
     const stmt = db.prepare(
-      'INSERT INTO leads (name, email, company_id) VALUES (?, ?, ?)',
+      'INSERT INTO leads (name, email, company_id, status) VALUES (?, ?, ?, ?)',
     )
-    const result = stmt.run(name, email, companyId ?? null)
+    const result = stmt.run(name, email, companyId ?? null, status || 'new')
 
     const created = db
       .prepare('SELECT * FROM leads WHERE id = ?')
@@ -109,10 +188,11 @@ router.put('/:id', (req: AuthRequest, res) => {
     return res.status(400).json({ error: 'Invalid lead id' })
   }
 
-  const { name, email, companyId } = req.body as {
+  const { name, email, companyId, status } = req.body as {
     name?: string
     email?: string
     companyId?: number | null
+    status?: string
   }
 
   if (!name || !email) {
@@ -120,15 +200,15 @@ router.put('/:id', (req: AuthRequest, res) => {
   }
 
   try {
-    const existing = db.prepare('SELECT * FROM leads WHERE id = ?').get(id)
+    const existing = db.prepare('SELECT * FROM leads WHERE id = ?').get(id) as any
     if (!existing) {
       return res.status(404).json({ error: 'Lead not found' })
     }
 
     const stmt = db.prepare(
-      'UPDATE leads SET name = ?, email = ?, company_id = ? WHERE id = ?',
+      'UPDATE leads SET name = ?, email = ?, company_id = ?, status = ? WHERE id = ?',
     )
-    stmt.run(name, email, companyId ?? null, id)
+    stmt.run(name, email, companyId ?? null, status || existing.status || 'new', id)
 
     const updated = db.prepare('SELECT * FROM leads WHERE id = ?').get(id)
 
