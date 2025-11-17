@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 
 interface HeaderProps {
@@ -9,8 +9,13 @@ interface HeaderProps {
 function Header({ className = '' }: HeaderProps) {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
+  const location = useLocation()
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
+  
+  // Check if path matches
+  const isLeadsActive = location.pathname === '/' || location.pathname === '/leads'
+  const isCompanyActive = location.pathname === '/company'
 
   const handleLogout = () => {
     logout()
@@ -58,7 +63,7 @@ function Header({ className = '' }: HeaderProps) {
 
   return (
     <header className={`fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-200 ${className}`}>
-      <div className="flex w-full px-6 py-4 flex justify-between items-center">
+      <div className="flex w-full px-6 py-4 justify-between items-center">
         <Link to="/" className="flex items-center">
           <img
             src="/logo.png"
@@ -67,7 +72,29 @@ function Header({ className = '' }: HeaderProps) {
           />
         </Link>
         {user && (
-          <div className="relative" ref={dropdownRef}>
+          <div className="flex items-center gap-6">
+            <nav className="hidden md:flex items-center gap-6">
+              <Link
+                to="/"
+                className="text-base font-medium text-primary transition-colors relative"
+              >
+                Leads
+                {isLeadsActive && (
+                  <span className="absolute -bottom-1 left-0 right-0 h-0.5 bg-primary" />
+                )}
+              </Link>
+              <Link
+                to="/company"
+                className="text-base font-medium text-primary transition-colors relative"
+              >
+                Companies
+                {isCompanyActive && (
+                  <span className="absolute -bottom-1 left-0 right-0 h-0.5 bg-primary" />
+                )}
+              </Link>
+            </nav>
+            <div className="hidden md:block h-6 w-px bg-gray-300" />
+            <div className="relative" ref={dropdownRef}>
             <button
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
               className="flex items-center gap-2 focus:outline-none"
@@ -108,6 +135,7 @@ function Header({ className = '' }: HeaderProps) {
                 </button>
               </div>
             )}
+            </div>
           </div>
         )}
       </div>

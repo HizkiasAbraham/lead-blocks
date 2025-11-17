@@ -59,8 +59,10 @@ function Companies() {
       <p className="text-xl font-bold text-white">
         Mini Dashboard met API-koppeling
       </p>
-      <Card className="p-2 md:p-8">
-        {companiesLoading && <Loading className="mb-4" />}
+      <Card className="p-2">
+        <div className="h-2 mb-4">
+          {companiesLoading && <Loading />}
+        </div>
         
         <div className="flex flex-col md:flex-row gap-2 justify-between items-center mb-6">
           <h1 className="text-4xl font-bold text-primary">Companies</h1>

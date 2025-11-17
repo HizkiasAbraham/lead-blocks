@@ -50,7 +50,7 @@ function Login() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-primary p-4">
       <div className="max-w-md w-full">
-        <Card className="py-14">
+        <Card className="py-14 px-4 md:px-0">
           <div className="text-center mb-8">
             <img
               src="/logo.png"
