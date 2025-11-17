@@ -1,8 +1,12 @@
+const path = require('path')
+
 module.exports = {
   apps: [
     {
       name: 'leadblocks-backend',
-      script: './dist/index.js',
+      script: 'npm',
+      args: 'start',
+      cwd: path.resolve(__dirname),
       instances: 1,
       exec_mode: 'fork',
       watch: false,
