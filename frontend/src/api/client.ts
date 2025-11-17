@@ -3,7 +3,7 @@ const API_BASE_URL =
 
 type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
 
-type JsonValue =
+export type JsonValue =
   | string
   | number
   | boolean
@@ -13,6 +13,7 @@ type JsonValue =
 
 interface RequestOptions extends RequestInit {
   auth?: boolean
+  query?: Record<string, string | number | boolean | null | undefined>
 }
 
 function getAuthToken() {
@@ -37,12 +38,34 @@ async function request<T>(
     }
   }
 
-  const res = await fetch(`${API_BASE_URL}${path}`, {
+  // Build query string from query params
+  let url = `${API_BASE_URL}${path}`
+  if (options.query) {
+    const queryParams = new URLSearchParams()
+    Object.entries(options.query).forEach(([key, value]) => {
+      if (value !== null && value !== undefined) {
+        queryParams.append(key, String(value))
+      }
+    })
+    const queryString = queryParams.toString()
+    if (queryString) {
+      url += `?${queryString}`
+    }
+  }
+
+  // Only include body for methods that support it
+  const fetchOptions: RequestInit = {
     ...options,
     method,
     headers,
-    body: JSON.stringify(body || {}),
-  })
+  }
+
+  // GET and DELETE requests should not have a body
+  if (method !== 'GET' && method !== 'DELETE' && body !== undefined) {
+    fetchOptions.body = JSON.stringify(body)
+  }
+
+  const res = await fetch(url, fetchOptions)
 
   const data = await res.json()
 
