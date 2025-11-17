@@ -6,7 +6,7 @@ import { leadsRouter } from './controllers/leads'
 import { companiesRouter } from './controllers/companies'
 
 const app = express()
-const PORT = process.env.PORT || 3000
+const PORT = process.env.PORT ? Number(process.env.PORT) : 3000
 
 // Initialize DB (connection + schema)
 getDb()
