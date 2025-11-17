@@ -2,8 +2,8 @@ import { Routes, Route, Navigate } from 'react-router-dom'
 import { useAuth } from './contexts/AuthContext'
 import { Layout, ProtectedRoute } from './components'
 import Login from './pages/Login'
-import Home from './pages/Home'
-import Company from './pages/Company'
+import Leads from './pages/leads'
+import Companies from './pages/companies'
 
 function App() {
   const { isAuthenticated, isLoading } = useAuth()
@@ -31,8 +31,8 @@ function App() {
             </ProtectedRoute>
           }
         >
-          <Route index element={<Home />} />
-          <Route path="company" element={<Company />} />
+          <Route index element={<Leads />} />
+          <Route path="company" element={<Companies />} />
         </Route>
       </Routes>
     </div>

@@ -60,7 +60,7 @@ router.get('/', (req, res) => {
       name: lead.name,
       email: lead.email,
       company_id: lead.company_id,
-      status: lead.status || 'new',
+      status: lead.status || 'active',
       created_at: lead.created_at,
       company: lead.company_id_full
         ? {
@@ -124,7 +124,7 @@ router.get('/:id', (req, res) => {
       name: lead.name,
       email: lead.email,
       company_id: lead.company_id,
-      status: lead.status || 'new',
+      status: lead.status || 'active',
       created_at: lead.created_at,
       company: lead.company_id_full
         ? {
@@ -204,7 +204,7 @@ router.put('/:id', (req: AuthRequest, res) => {
     const stmt = db.prepare(
       'UPDATE leads SET name = ?, email = ?, company_id = ?, status = ? WHERE id = ?',
     )
-    stmt.run(name, email, companyId ?? null, status || existing.status || 'new', id)
+    stmt.run(name, email, companyId ?? null, status || existing.status || 'active', id)
 
     const updated = db.prepare('SELECT * FROM leads WHERE id = ?').get(id)
 
